@@ -5,20 +5,21 @@ namespace PayrollEngine.McpServer.Tools.Isolation;
 
 /// <summary>Permission levels per role for this MCP Server deployment.
 /// Populated from McpServer:Permissions in appsettings.json or environment variables.
-/// Default when the Permissions section is absent: Full for all roles.</summary>
+/// Default when the Permissions section is absent: Read for all roles.
+/// The MCP Server is read-only by design — no write tools exist.</summary>
 public sealed class McpPermissions
 {
     /// <summary>Permission for HR tools (divisions, employees, case values).</summary>
-    public McpPermission HR { get; init; } = McpPermission.Full;
+    public McpPermission HR { get; init; } = McpPermission.Read;
 
     /// <summary>Permission for Payroll tools (payrolls, payruns, jobs, temporal queries).</summary>
-    public McpPermission Payroll { get; init; } = McpPermission.Full;
+    public McpPermission Payroll { get; init; } = McpPermission.Read;
 
     /// <summary>Permission for Regulation tools (regulations, wage types, lookups).</summary>
-    public McpPermission Regulation { get; init; } = McpPermission.Full;
+    public McpPermission Regulation { get; init; } = McpPermission.Read;
 
-    /// <summary>Permission for System tools (tenant setup, user management).</summary>
-    public McpPermission System { get; init; } = McpPermission.Full;
+    /// <summary>Permission for System tools (tenant and user queries).</summary>
+    public McpPermission System { get; init; } = McpPermission.Read;
 
     /// <summary>Returns the permission granted for the given role.</summary>
     public McpPermission GetPermission(McpRole role) => role switch
@@ -35,7 +36,7 @@ public sealed class McpPermissions
         GetPermission(role) >= required;
 
     /// <summary>Reads McpServer:Permissions from configuration.
-    /// Returns a fully-granted instance when the section is absent.</summary>
+    /// Returns a fully-read instance when the section is absent.</summary>
     public static McpPermissions FromConfiguration(IConfiguration configuration)
     {
         var section = configuration.GetSection("McpServer:Permissions");
