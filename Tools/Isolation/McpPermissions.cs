@@ -22,7 +22,7 @@ public sealed class McpPermissions
     public McpPermission System { get; init; } = McpPermission.Read;
 
     /// <summary>Returns the permission granted for the given role.</summary>
-    public McpPermission GetPermission(McpRole role) => role switch
+    private McpPermission GetPermission(McpRole role) => role switch
     {
         McpRole.HR         => HR,
         McpRole.Payroll    => Payroll,
