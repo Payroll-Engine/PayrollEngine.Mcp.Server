@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<AssemblyName>PayrollEngine.McpServer.Tests</AssemblyName>
-		<RootNamespace>PayrollEngine.McpServer.Tests</RootNamespace>
+		<AssemblyName>PayrollEngine.Mcp.Server.Tests</AssemblyName>
+		<RootNamespace>PayrollEngine.Mcp.Server.Tests</RootNamespace>
 		<IsPackable>false</IsPackable>
 		<Description>Payroll Engine MCP Server unit tests</Description>
 	</PropertyGroup>
@@ -17,7 +17,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Tools\PayrollEngine.McpServer.Tools.csproj" />
+		<PackageReference Include="PayrollEngine.Mcp.Core" Version="0.10.0-beta.dev" />
+		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="0.10.0-beta.dev" />
 	</ItemGroup>
 
 </Project>

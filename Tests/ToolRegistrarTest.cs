@@ -1,14 +1,15 @@
 using System.Linq;
 using System.Reflection;
-using PayrollEngine.McpServer.Tools;
-using PayrollEngine.McpServer.Tools.Isolation;
-using PayrollEngine.McpServer.Tools.PayrollTools;
-using PayrollEngine.McpServer.Tools.PeopleTools;
-using PayrollEngine.McpServer.Tools.ReportTools;
-using PayrollEngine.McpServer.Tools.TenantTools;
+using PayrollEngine.Mcp.Core;
+using PayrollEngine.Mcp.Core.Isolation;
+using PayrollEngine.Mcp.Tools;
+using PayrollEngine.Mcp.Tools.PayrollTools;
+using PayrollEngine.Mcp.Tools.PeopleTools;
+using PayrollEngine.Mcp.Tools.ReportTools;
+using PayrollEngine.Mcp.Tools.TenantTools;
 using Xunit;
 
-namespace PayrollEngine.McpServer.Tests;
+namespace PayrollEngine.Mcp.Server.Tests;
 
 /// <summary>Unit tests for ToolRegistrar permission filtering.
 /// Verifies that tool classes are registered or excluded based on McpPermissions —

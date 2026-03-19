@@ -1,8 +1,8 @@
 using System;
-using PayrollEngine.McpServer.Tools.Isolation;
+using PayrollEngine.Mcp.Core.Isolation;
 using Xunit;
 
-namespace PayrollEngine.McpServer.Tests;
+namespace PayrollEngine.Mcp.Server.Tests;
 
 /// <summary>Unit tests for IsolationContext.Validate().
 /// Verifies that required configuration keys are enforced per isolation level.</summary>

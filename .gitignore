@@ -101,4 +101,4 @@ apisettings.json
 # Local Claude Desktop config (machine-specific)
 claude_desktop_config.json
 
-/McpServer/Properties/launchSettings.json
+/Server/Properties/launchSettings.json

@@ -6,7 +6,10 @@ The MCP Server is **read-only by design**. It is an information and analysis too
 
 ## Overview
 
-The MCP server exposes Payroll Engine functionality as typed tools that AI clients (Claude Desktop, GitHub Copilot, Cursor, etc.) can invoke directly. It uses the [PayrollEngine.Client.Core](https://www.nuget.org/packages/PayrollEngine.Client.Core) NuGet package and communicates via stdio transport.
+The MCP server exposes Payroll Engine functionality as typed tools that AI clients (Claude Desktop, GitHub Copilot, Cursor, etc.) can invoke directly. It communicates via stdio transport and is built on two libraries:
+
+- [PayrollEngine.Mcp.Core](https://github.com/Payroll-Engine/PayrollEngine.Mcp.Core) — isolation model, permission system, and `ToolBase` infrastructure
+- [PayrollEngine.Mcp.Tools](https://github.com/Payroll-Engine/PayrollEngine.Mcp.Tools) — the complete set of read-only query tools
 
 ## Access Control
 
@@ -265,7 +268,7 @@ Each tool belongs to exactly one role. Granting a role registers all its tools.
 
 ## Configuration
 
-Backend connection settings in `McpServer/appsettings.json`:
+Backend connection settings in `Server/appsettings.json`:
 
 ```json
 {
@@ -367,7 +370,7 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
       "args": [
         "run",
         "--project",
-        "path/to/McpServer/PayrollEngine.McpServer.csproj",
+        "path/to/Server/PayrollEngine.Mcp.Server.csproj",
         "--no-launch-profile",
         "--no-build"
       ],
@@ -388,7 +391,7 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 docker run --rm -i \
   -e ApiSettings__BaseUrl=https://your-backend \
   -e ApiSettings__Port=443 \
-  ghcr.io/payroll-engine/payrollengine.mcpserver
+  ghcr.io/payroll-engine/payrollengine.mcp.server
 ```
 
 ## Example Prompts
@@ -405,6 +408,17 @@ What is the tax rate for an income of 85000 in the TaxRates lookup?
 What would the payroll look like for Müller in April 2026?
 Run the MonthlyPayslip report for the CH-Monthly payroll
 ```
+
+## Related Repositories
+
+| Repository | Description |
+|:-----------|:------------|
+| [PayrollEngine.Mcp.Core](https://github.com/Payroll-Engine/PayrollEngine.Mcp.Core) | Core infrastructure — `ToolBase`, isolation model, permission system |
+| [PayrollEngine.Mcp.Tools](https://github.com/Payroll-Engine/PayrollEngine.Mcp.Tools) | Read-only MCP tools built on Core |
+| [PayrollEngine.Client.Core](https://github.com/Payroll-Engine/PayrollEngine.Client.Core) | Payroll Engine REST API client |
+| [PayrollEngine.Backend](https://github.com/Payroll-Engine/PayrollEngine.Backend) | Payroll Engine backend |
+
+---
 
 ## License
 
