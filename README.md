@@ -218,7 +218,7 @@ Each tool belongs to exactly one role. Granting a role registers all its tools.
 | `list_divisions` | ✓ | ✓ | F | F |
 | `get_division` | ✓ | ✓ | ✓ | G |
 | `get_division_attribute` | ✓ | ✓ | ✓ | G |
-| `list_employees` | ✓ | ✓ | F ¹ | F ¹ |
+| `list_employees` | ✓ | ✓ | F | F |
 | `get_employee` | ✓ | ✓ | G | G |
 | `get_employee_attribute` | ✓ | ✓ | G | G |
 | `list_employee_case_values` | ✓ | ✓ | G | G |
@@ -234,7 +234,7 @@ Each tool belongs to exactly one role. Granting a role registers all its tools.
 | `list_payroll_result_values` | ✓ | ✓ | F | ✗ |
 | `get_consolidated_payroll_result` | ✓ | ✓ | G | ✗ |
 | `get_employee_pay_preview` | ✓ | ✓ | ✓ | ✗ |
-| `get_case_time_values` | ✓ | ✓ | G ² | ✗ |
+| `get_case_time_values` | ✓ | ✓ | G ¹ | ✗ |
 | `execute_payroll_report` | ✓ | ✓ | ✗ | ✗ |
 | `list_tenants` | ✓ | ✓ | ✗ | ✗ |
 | `get_tenant` | ✓ | ✓ | ✗ | ✗ |
@@ -243,8 +243,7 @@ Each tool belongs to exactly one role. Granting a role registers all its tools.
 | `get_user` | ✓ | ✓ | ✗ | ✗ |
 | `get_user_attribute` | ✓ | ✓ | ✗ | ✗ |
 
-¹ Division filtering applied client-side — the backend does not support OData collection lambda expressions (`divisions/any()`). All employees are fetched and then filtered in memory by division membership.  
-² Guard applies only when `employeeIdentifier` is provided. Without it, `Company` and `Global` case types return all values unfiltered; `Employee` case type returns values for all employees without division scoping.
+¹ Guard applies only when `employeeIdentifier` is provided. Without it, `Company` and `Global` case types return all values unfiltered; `Employee` case type returns values for all employees without division scoping.
 
 ### Persona Examples
 
