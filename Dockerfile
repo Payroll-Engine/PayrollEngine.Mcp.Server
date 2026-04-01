@@ -5,10 +5,9 @@ ARG NUGET_SOURCE=github
 WORKDIR /src
 
 # Copy solution and project files
-COPY ["PayrollEngine.McpServer.sln", "./"]
-COPY ["McpServer/PayrollEngine.McpServer.csproj", "McpServer/"]
-COPY ["Tools/PayrollEngine.McpServer.Tools.csproj", "Tools/"]
-COPY ["Tests/PayrollEngine.McpServer.Tests.csproj", "Tests/"]
+COPY ["PayrollEngine.Mcp.Server.sln", "./"]
+COPY ["Server/PayrollEngine.Mcp.Server.csproj", "Server/"]
+COPY ["Tests/PayrollEngine.Mcp.Server.Tests.csproj", "Tests/"]
 COPY ["Directory.Build.props", "./"]
 
 # Configure NuGet source
@@ -23,15 +22,15 @@ RUN if [ "${NUGET_SOURCE}" = "github" ]; then \
     fi
 
 # Restore dependencies (cached layer)
-RUN dotnet restore "PayrollEngine.McpServer.sln"
+RUN dotnet restore "PayrollEngine.Mcp.Server.sln"
 
 # Copy remaining source files and publish
 COPY . .
-WORKDIR "/src/McpServer"
-RUN dotnet publish "PayrollEngine.McpServer.csproj" -c Release -o /app/publish --no-restore
+WORKDIR "/src/Server"
+RUN dotnet publish "PayrollEngine.Mcp.Server.csproj" -c Release -o /app/publish --no-restore
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "PayrollEngine.McpServer.dll"]
+ENTRYPOINT ["dotnet", "PayrollEngine.Mcp.Server.dll"]
