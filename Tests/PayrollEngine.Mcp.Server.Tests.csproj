@@ -17,8 +17,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PayrollEngine.Mcp.Core" Version="0.10.0-beta.dev" />
-		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="0.10.0-beta.dev" />
+		<PackageReference Include="PayrollEngine.Mcp.Core" Version="$(PayrollEngineVersion)" />
+		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="$(PayrollEngineVersion)" />
 	</ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿
+
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
@@ -13,10 +13,10 @@
 	<ItemGroup>
 		<PackageReference Include="ModelContextProtocol" Version="1.1.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
-		<PackageReference Include="PayrollEngine.Client.Core" Version="0.10.0-beta.dev" />
-		<PackageReference Include="PayrollEngine.Mcp.Core" Version="0.10.0-beta.dev" />
-		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="0.10.0-beta.dev" />
-		<PackageReference Include="PayrollEngine.Serilog" Version="0.10.0-beta.dev" />
+		<PackageReference Include="PayrollEngine.Client.Core" Version="$(PayrollEngineVersion)" />
+		<PackageReference Include="PayrollEngine.Mcp.Core" Version="$(PayrollEngineVersion)" />
+		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="$(PayrollEngineVersion)" />
+		<PackageReference Include="PayrollEngine.Serilog" Version="$(PayrollEngineVersion)" />
 		<PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
 		<PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
