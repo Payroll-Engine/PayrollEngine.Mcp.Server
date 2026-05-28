@@ -130,6 +130,8 @@ sealed class Program
             DivisionName = builder.Configuration["McpServer:DivisionName"],
             EmployeeIdentifier = builder.Configuration["McpServer:EmployeeIdentifier"],
             PreviewUserIdentifier = builder.Configuration["McpServer:PreviewUserIdentifier"],
+            IntegrityKey = builder.Configuration["McpServer:IntegrityKey"]
+                           ?? Environment.GetEnvironmentVariable("PayrollIntegrityKey"),
             Permissions = McpPermissions.FromConfiguration(builder.Configuration)
         };
     }
