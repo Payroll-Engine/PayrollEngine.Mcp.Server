@@ -24,7 +24,8 @@ public class ToolRegistrarTest
         typeof(DivisionQueryTools),
         typeof(EmployeeQueryTools),
         typeof(CaseValueQueryTools),
-        typeof(CaseChangeQueryTools)
+        typeof(CaseChangeQueryTools),
+        typeof(CaseSchemaQueryTools)
     ];
 
     // Payroll tool classes
@@ -33,7 +34,9 @@ public class ToolRegistrarTest
         typeof(PayrollQueryTools),
         typeof(PayrollResultTools),
         typeof(ConsolidatedResultTools),
-        typeof(PayrollPreviewTools)
+        typeof(PayrollPreviewTools),
+        typeof(PayrollStructureTools),
+        typeof(LookupQueryTools)
     ];
 
     // Report tool classes
@@ -252,12 +255,12 @@ public class ToolRegistrarTest
     #region Tool count — detects unregistered new tool classes
 
     [Fact]
-    public void AllRead_TotalToolCount_Is12()
+    public void AllRead_TotalToolCount_Is15()
     {
-        // ServerInfo(1, no role) + HR(4) + Payroll(4) + Report(1) + System(2) = 12
+        // ServerInfo(1, no role) + HR(5) + Payroll(6) + Report(1) + System(2) = 15
         // Update this count whenever a new tool class is added.
         var permitted = GetPermitted(AllRead()).ToList();
-        Assert.Equal(12, permitted.Count);
+        Assert.Equal(15, permitted.Count);
     }
 
     [Fact]
@@ -277,7 +280,7 @@ public class ToolRegistrarTest
     }
 
     [Fact]
-    public void HrToolCount_Is4()
+    public void HrToolCount_Is5()
     {
         var permissions = new McpPermissions
         {
@@ -287,11 +290,11 @@ public class ToolRegistrarTest
             System = McpPermission.None
         };
         var permitted = GetPermitted(permissions).ToList();
-        Assert.Equal(5, permitted.Count); // HR(4) + ServerInfo(1)
+        Assert.Equal(6, permitted.Count); // HR(5) + ServerInfo(1)
     }
 
     [Fact]
-    public void PayrollToolCount_Is4()
+    public void PayrollToolCount_Is6()
     {
         var permissions = new McpPermissions
         {
@@ -301,7 +304,7 @@ public class ToolRegistrarTest
             System = McpPermission.None
         };
         var permitted = GetPermitted(permissions).ToList();
-        Assert.Equal(5, permitted.Count); // Payroll(4) + ServerInfo(1)
+        Assert.Equal(7, permitted.Count); // Payroll(6) + ServerInfo(1)
     }
 
     [Fact]
