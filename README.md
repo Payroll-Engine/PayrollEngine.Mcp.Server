@@ -419,6 +419,15 @@ Run the MonthlyPayslip report for the CH-Monthly payroll
 
 ---
 
+## Third Party Components
+
+- MCP protocol with [MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk/) — license `Apache 2.0`
+- Logging with [Serilog](https://github.com/serilog/serilog/) — license `Apache 2.0`
+
+All distributed components, their licenses and notices are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md); the file is part of every build output.
+
+---
+
 ## License
 
 [MIT License](LICENSE) — free for personal and commercial use.
