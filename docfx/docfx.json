@@ -3,7 +3,7 @@
     {
       "src": [
         {
-          "files": [ "publish/PayrollEngine.McpServer.Tools.dll" ],
+          "files": [ "publish/PayrollEngine.Mcp.Tools.dll" ],
           "src": "../"
         }
       ],

@@ -1,7 +1,7 @@
 @echo off
-rem publish tools assembly
-echo Publishing tools assembly...
-dotnet publish ..\Tools\PayrollEngine.McpServer.Tools.csproj -c Release -o ..\publish
+rem publish server (includes the PayrollEngine.Mcp.Tools assembly)
+echo Publishing server...
+dotnet publish ..\Server\PayrollEngine.Mcp.Server.csproj -c Release -o ..\publish
 
 rem build static site
 echo.

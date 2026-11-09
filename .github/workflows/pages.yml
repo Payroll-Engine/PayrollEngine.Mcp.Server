@@ -37,14 +37,15 @@ jobs:
             --password ${{ secrets.PAT_DISPATCH }} \
             --store-password-in-clear-text
 
-      - name: Publish tools assembly
-        run: dotnet publish Tools/PayrollEngine.McpServer.Tools.csproj -c Release -o publish
+      # The tools are documented from the PayrollEngine.Mcp.Tools package, which the server publish copies with its XML docs
+      - name: Publish server
+        run: dotnet publish Server/PayrollEngine.Mcp.Server.csproj -c Release -o publish
 
       - name: Install DocFX
         run: dotnet tool install -g docfx
 
       - name: Build DocFX
-        run: cd docfx && docfx docfx.pages.json
+        run: cd docfx && docfx docfx.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
