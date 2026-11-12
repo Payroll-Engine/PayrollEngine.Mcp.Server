@@ -235,4 +235,44 @@ public class IsolationContextTest
     }
 
     #endregion
+
+    #region Regulator
+
+    [Fact]
+    public void Permissions_Default_RegulatorNoneOthersRead()
+    {
+        var permissions = new IsolationContext().Permissions;
+        Assert.Equal(McpPermission.None, permissions.Regulator);
+        Assert.Equal(McpPermission.Read, permissions.HR);
+        Assert.Equal(McpPermission.Read, permissions.Payroll);
+        Assert.Equal(McpPermission.Read, permissions.Report);
+        Assert.Equal(McpPermission.Read, permissions.System);
+    }
+
+    [Fact]
+    public void Regulator_Granted_MultiTenant_IsValid()
+    {
+        var ctx = new IsolationContext
+        {
+            Level = IsolationLevel.MultiTenant,
+            Permissions = new McpPermissions { Regulator = McpPermission.Read }
+        };
+        ctx.Validate(); // must not throw
+        Assert.True(ctx.Permissions.IsGranted(McpRole.Regulator, McpPermission.Read));
+    }
+
+    [Fact]
+    public void Regulator_Granted_Tenant_IsValid()
+    {
+        var ctx = new IsolationContext
+        {
+            Level = IsolationLevel.Tenant,
+            TenantIdentifier = "XX.Dev",
+            Permissions = new McpPermissions { Regulator = McpPermission.Read }
+        };
+        ctx.Validate(); // must not throw
+        Assert.True(ctx.Permissions.IsGranted(McpRole.Regulator, McpPermission.Read));
+    }
+
+    #endregion
 }

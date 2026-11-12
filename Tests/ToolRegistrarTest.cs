@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using ModelContextProtocol.Server;
 using PayrollEngine.Mcp.Core;
 using PayrollEngine.Mcp.Core.Isolation;
 using PayrollEngine.Mcp.Tools;
@@ -353,6 +356,78 @@ public class ToolRegistrarTest
         var permitted = GetPermitted(AllRead()).ToList();
         Assert.All(permitted, t => Assert.True(t.IsSubclassOf(typeof(IsolationToolBase)), t.Name));
     }
+
+    #endregion
+
+    #region Regulator
+
+    private static readonly Assembly ProbeAssembly = typeof(RegulatorProbeTool).Assembly;
+
+    private static bool ProbeRegistered(McpPermissions permissions, IsolationLevel level) =>
+        ToolRegistrar.GetPermittedTypes(ProbeAssembly, permissions, level).Contains(typeof(RegulatorProbeTool));
+
+    [Fact]
+    public void Regulator_DefaultPermission_IsNone()
+    {
+        Assert.Equal(McpPermission.None, new McpPermissions().Regulator);
+        Assert.False(new McpPermissions().IsGranted(McpRole.Regulator, McpPermission.Read));
+    }
+
+    [Fact]
+    public void Regulator_DefaultPermissions_DoNotRegisterRegulatorTools()
+    {
+        Assert.False(ProbeRegistered(new McpPermissions(), IsolationLevel.MultiTenant));
+    }
+
+    [Theory]
+    [InlineData(IsolationLevel.MultiTenant, true)]
+    [InlineData(IsolationLevel.Tenant, true)]
+    [InlineData(IsolationLevel.Division, false)]
+    [InlineData(IsolationLevel.Employee, false)]
+    public void Regulator_Read_FollowsIsolationMatrix(IsolationLevel level, bool expected)
+    {
+        var permissions = new McpPermissions { Regulator = McpPermission.Read };
+        Assert.Equal(expected, ProbeRegistered(permissions, level));
+    }
+
+    [Fact]
+    public void Regulator_Granted_DoesNotAffectOtherRoles()
+    {
+        var permissions = new McpPermissions { Regulator = McpPermission.Read };
+        var permitted = GetPermitted(permissions).ToList();
+        Assert.All(HrTools, t => Assert.Contains(t, permitted));
+        Assert.All(SystemTools, t => Assert.Contains(t, permitted));
+    }
+
+    [Fact]
+    public void Regulator_Configuration_WithoutSection_DefaultsToNone()
+    {
+        var permissions = McpPermissions.FromConfiguration(new ConfigurationBuilder().Build());
+        Assert.Equal(McpPermission.Read, permissions.HR);
+        Assert.Equal(McpPermission.None, permissions.Regulator);
+    }
+
+    [Fact]
+    public void Regulator_Configuration_SectionWithoutRegulator_DefaultsToNone()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string> { ["McpServer:Permissions:HR"] = "Read" })
+            .Build();
+        Assert.Equal(McpPermission.None, McpPermissions.FromConfiguration(configuration).Regulator);
+    }
+
+    [Fact]
+    public void Regulator_Configuration_ReadsRegulatorPermission()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string> { ["McpServer:Permissions:Regulator"] = "Read" })
+            .Build();
+        Assert.Equal(McpPermission.Read, McpPermissions.FromConfiguration(configuration).Regulator);
+    }
+
+    [McpServerToolType]
+    [ToolRole(McpRole.Regulator)]
+    private sealed class RegulatorProbeTool;
 
     #endregion
 
