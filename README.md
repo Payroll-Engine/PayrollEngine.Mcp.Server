@@ -406,6 +406,10 @@ Startup rules:
 - The backend connection (`ApiSettings`) is required only when a backend role (`HR`, `Payroll`, `Report`, `System`) is granted or `Regulator:Backend` is not `None`. Otherwise the server runs offline — apart from source downloads and URL checks of the tools. The backend roles default to `Read`, so a Regulator-only deployment sets them to `None` explicitly.
 - A failed start writes the reason to stderr and ends the process with exit code `1`.
 
+Transport: the server speaks MCP over **stdio** on the local machine (stdin/stdout). It does not open an HTTP listener. Tools that fetch sources or check URLs (`lex_check` with `checkUrls`, `lex_verify_source` with source `live`) need outbound network access from the host process; private or internal URLs are allowed — nothing in the OSS server blocks non-public addresses for local operation.
+
+Logging: configure the log file path in `Server/appsettings.json` under `Serilog:WriteTo` (file sink only — stdout is reserved for MCP). Serilog nested sink settings cannot be overridden through environment variables; use a copied or mounted `appsettings.json` when the default path is not writable (for example in containers).
+
 Sample entries for Claude Desktop are in `claude_desktop_config.json` (`payroll-engine-regulator`).
 
 ## MCP Client Setup
@@ -447,6 +451,8 @@ docker run --rm -i \
 ```
 
 For the [Regulator profile](#regulator-profile-offline) the image needs no backend. The workspace folders are mounted as a volume, and `Regulator:Roots` lists the **paths inside the container**:
+
+Use `-i` (interactive) so stdin stays open for the MCP client. Mount `appsettings.json` when you need a custom log path.
 
 ```bash
 docker run --rm -i \
