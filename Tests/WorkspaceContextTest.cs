@@ -29,8 +29,43 @@ public sealed class WorkspaceContextTest : IDisposable
         Assert.Empty(workspace.Tenants);
         Assert.Null(workspace.RepoMask);
         Assert.Null(workspace.Identity);
+        Assert.Empty(workspace.AgentIdentities);
         Assert.Equal(McpPermission.None, workspace.Backend);
         workspace.Validate(); // must not throw
+    }
+
+    [Fact]
+    public void FromConfiguration_AgentIdentities_AreReadAsArrayAndAsString()
+    {
+        var array = WorkspaceContext.FromConfiguration(Configuration(new()
+        {
+            ["McpServer:Regulator:Roots:0"] = fixture.Root,
+            ["McpServer:Regulator:AgentIdentities:0"] = " Agent One ",
+            ["McpServer:Regulator:AgentIdentities:1"] = "Agent Two"
+        }));
+        var text = WorkspaceContext.FromConfiguration(Configuration(new()
+        {
+            ["McpServer:Regulator:Roots:0"] = fixture.Root,
+            ["McpServer:Regulator:AgentIdentities"] = "Agent One; Agent Two;"
+        }));
+
+        Assert.Equal(["Agent One", "Agent Two"], array.AgentIdentities);
+        Assert.Equal(["Agent One", "Agent Two"], text.AgentIdentities);
+        array.Validate(); // must not throw
+    }
+
+    [Fact]
+    public void Validate_AgentIdentitiesWithoutRoots_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(new WorkspaceContext { AgentIdentities = ["Agent One"] }.Validate);
+    }
+
+    [Fact]
+    public void Validate_EmptyAgentIdentity_Throws()
+    {
+        var workspace = new WorkspaceContext { Roots = [fixture.Root], AgentIdentities = ["Agent One", " "] };
+
+        Assert.Throws<InvalidOperationException>(workspace.Validate);
     }
 
     [Fact]
