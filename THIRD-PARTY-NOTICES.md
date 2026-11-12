@@ -12,6 +12,8 @@ third-party components, each under its own license. The full Apache License 2.0 
 |:--|:--|:--|:--|
 | ModelContextProtocol, ModelContextProtocol.Core | Apache-2.0 (earlier contributions MIT) | Copyright (c) 2024-2026 Model Context Protocol a Series of LF Projects, LLC. (see notices below) | https://github.com/modelcontextprotocol/csharp-sdk |
 | Serilog and Serilog extensions, settings and sinks | Apache-2.0 | Copyright © Serilog Contributors | https://github.com/serilog |
+| PdfPig (UglyToad.PdfPig.*) | Apache-2.0 | Copyright (c) PdfPig contributors (see notices below) | https://github.com/UglyToad/PdfPig |
+| ExcelDataReader | MIT | Copyright (c) ExcelDataReader contributors | https://github.com/ExcelDataReader/ExcelDataReader |
 | YamlDotNet | MIT | Copyright (c) Antoine Aubry and contributors | https://github.com/aaubry/YamlDotNet |
 | YamlDotNet.System.Text.Json | MIT | Ivan Josipovic | https://github.com/IvanJosipovic/YamlDotNet.System.Text.Json |
 
@@ -28,6 +30,28 @@ without relicensing consent remain under the MIT License. The SDK includes code 
 mcpdotnet
 Copyright (c) 2024 Peder Holdgaard Pedersen
 Licensed under the MIT License.
+```
+
+---
+
+## Notice of PdfPig
+
+PdfPig is a dependency of the Lex library (PayrollEngine.Lex) used by the Regulator tools. NOTICE of the PdfPig project:
+
+```
+This product is derived from software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+Based on source code originally developed in the PDFBox and
+FontBox projects.
+
+Copyright (c) 2002-2007, www.pdfbox.org
+
+Includes the Adobe Glyph List
+Copyright 1997, 1998, 2002, 2007, 2010 Adobe Systems Incorporated.
+
+Includes the Zapf Dingbats Glyph List
+Copyright 2002, 2010 Adobe Systems Incorporated.
 ```
 
 ---

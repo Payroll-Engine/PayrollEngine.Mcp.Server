@@ -31,22 +31,35 @@ sealed class Program
             // logger setup — file only, no console (stdio is reserved for MCP protocol)
             builder.Configuration.SetupSerilog();
 
-            // payroll http client for backend communication
-            var payrollHttpClient = await BuildPayrollHttpClientAsync(builder);
-
-            // isolation context — reads McpServer:IsolationLevel, TenantIdentifier, and Permissions
-            var isolationContext = BuildIsolationContext(builder);
-            isolationContext.Validate();
+            // isolation context — reads McpServer:IsolationLevel, TenantIdentifier, Permissions and the
+            // workspace (McpServer:Regulator); validates the isolation level, the workspace and the Regulator roots
+            var isolationContext = HostStartup.CreateIsolationContext(builder.Configuration);
             LogIsolationContext(isolationContext);
 
+            // payroll http client for backend communication — optional:
+            // required only by a backend role (HR, Payroll, Report, System) or McpServer:Regulator:Backend
+            PayrollHttpClient payrollHttpClient = null;
+            if (HostStartup.RequiresBackend(isolationContext.Permissions, isolationContext.Workspace))
+            {
+                payrollHttpClient = await BuildPayrollHttpClientAsync(builder,
+                    HostStartup.DescribeBackendRequirement(isolationContext.Permissions, isolationContext.Workspace));
+            }
+            else
+            {
+                Log.Information("Backend: offline (no backend role and no Regulator backend access granted)");
+            }
+
             // MCP server with stdio transport and permission-filtered tool registration
+            builder.Services.AddSingleton(isolationContext);
+            if (payrollHttpClient != null)
+            {
+                builder.Services.AddSingleton(payrollHttpClient);
+            }
             var mcpBuilder = builder.Services
-                .AddSingleton(payrollHttpClient)
-                .AddSingleton(isolationContext)
                 .AddMcpServer()
                 .WithStdioServerTransport();
 
-            RegisterPermittedTools(mcpBuilder, isolationContext.Permissions, isolationContext.Level);
+            RegisterPermittedTools(mcpBuilder, isolationContext.Permissions, isolationContext.Level, payrollHttpClient != null);
 
             await builder.Build().RunAsync();
         }
@@ -56,6 +69,8 @@ sealed class Program
             await Console.Error.WriteLineAsync($"[FATAL] {exception.GetBaseException().GetType().Name}: {exception.GetBaseException().Message}");
             await Console.Error.WriteLineAsync(exception.ToString());
             try { Log.Critical(exception, exception.GetBaseException().Message); } catch { /* Serilog not available */ }
+            // a failed start must be visible to the MCP client and to scripts
+            Environment.ExitCode = 1;
         }
     }
 
@@ -63,10 +78,12 @@ sealed class Program
     /// <summary>Registers only the tool classes permitted by the active McpPermissions.
     /// Uses the WithTools&lt;T&gt;() extension method from the MCP SDK via reflection
     /// to support dynamic type-based registration.</summary>
-    private static void RegisterPermittedTools(IMcpServerBuilder mcpBuilder, McpPermissions permissions, IsolationLevel isolationLevel)
+    private static void RegisterPermittedTools(IMcpServerBuilder mcpBuilder, McpPermissions permissions,
+        IsolationLevel isolationLevel, bool backendConnected)
     {
         var toolsAssembly = typeof(ToolsMarker).Assembly;
         var permittedTypes = ToolRegistrar.GetPermittedTypes(toolsAssembly, permissions, isolationLevel).ToList();
+        HostStartup.EnsureBackendIndependentTools(permittedTypes, backendConnected);
 
         // Locate WithTools<T>(IMcpServerBuilder) in the MCP SDK via reflection.
         // Searches both the main assembly and ModelContextProtocol.Core for the generic overload.
@@ -116,28 +133,8 @@ sealed class Program
         Log.Information($"Registered {permittedTypes.Count} tool class(es) based on active permissions.");
     }
 
-    private static IsolationContext BuildIsolationContext(HostApplicationBuilder builder)
-    {
-        var levelValue = builder.Configuration["McpServer:IsolationLevel"];
-        var level = Enum.TryParse<IsolationLevel>(levelValue, ignoreCase: true, out var parsed)
-            ? parsed
-            : IsolationLevel.MultiTenant;
-
-        return new IsolationContext
-        {
-            Level = level,
-            TenantIdentifier = builder.Configuration["McpServer:TenantIdentifier"],
-            DivisionName = builder.Configuration["McpServer:DivisionName"],
-            EmployeeIdentifier = builder.Configuration["McpServer:EmployeeIdentifier"],
-            PreviewUserIdentifier = builder.Configuration["McpServer:PreviewUserIdentifier"],
-            IntegrityKey = builder.Configuration["McpServer:IntegrityKey"]
-                           ?? Environment.GetEnvironmentVariable("PayrollIntegrityKey"),
-            Permissions = McpPermissions.FromConfiguration(builder.Configuration)
-        };
-    }
-
     private static async Task<PayrollHttpClient> BuildPayrollHttpClientAsync(
-        HostApplicationBuilder builder)
+        HostApplicationBuilder builder, string requirement)
     {
         var handler = new HttpClientHandler
         {
@@ -157,9 +154,10 @@ sealed class Program
         if (config == null || !config.Valid())
         {
             throw new InvalidOperationException(
-                "Missing or invalid Payroll HTTP client configuration. " +
+                $"Missing or invalid Payroll HTTP client configuration; the backend connection is {requirement}. " +
                 "Set ApiSettings in appsettings.json or the environment variable " +
-                $"'{SystemSpecification.PayrollApiConnection}'.");
+                $"'{SystemSpecification.PayrollApiConnection}', or run offline by granting only the Regulator role " +
+                "(McpServer:Permissions: HR, Payroll, Report and System set to None; McpServer:Regulator:Backend None).");
         }
 
         var client = new PayrollHttpClient(handler, config);
@@ -184,5 +182,10 @@ sealed class Program
             _                          => "unknown"
         };
         Log.Information($"Isolation: {level} ({detail})");
+        if (isolation.Permissions.Regulator != McpPermission.None)
+        {
+            Log.Information($"Regulator: {isolation.Permissions.Regulator} " +
+                            $"(roots: {isolation.Workspace.Roots.Count}, backend: {isolation.Workspace.Backend})");
+        }
     }
 }

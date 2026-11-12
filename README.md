@@ -43,6 +43,7 @@ Controls **which tools** are registered at startup. Each tool belongs to exactly
 | `Payroll` | Payroll execution, results, preview calculations, temporal case value queries, and lookup resolution |
 | `Report` | Payroll report execution and result analysis |
 | `System` | Tenant and user management |
+| `Regulator` | File based, read-only tools for the provenance manifests of data regulations (default `None`, see [Regulator Profile](#regulator-profile-offline)) |
 
 ### Server — Always Available
 
@@ -50,7 +51,7 @@ The server tool is registered unconditionally — regardless of role permissions
 
 | Tool | Description |
 |:-----|:------------|
-| `get_server_info` | Returns server version, active isolation level, configured scope, and role permissions. Use to verify which build is running and how it is configured. |
+| `get_server_info` | Returns server version, Lex library version, active isolation level, configured scope, role permissions, the regulator mode (permission, number of workspace roots, repository mask, backend access) and the backend mode (`connected` or `offline`). Use to verify which build is running and how it is configured. Works without a backend connection. |
 
 ### HR — Human Resources
 
@@ -168,6 +169,7 @@ Each role is independently enabled or disabled per deployment.
 | **Payroll** | ✓ | ✓ | ✓ | ✗ |
 | **Report** | ✓ | ✓ | ✗ | ✗ |
 | **System** | ✓ | ✓ | ✗ | ✗ |
+| **Regulator** | ✓ | ✓ | ✗ | ✗ |
 
 ### Tool × Role
 
@@ -261,7 +263,7 @@ Each tool belongs to exactly one role. Granting a role registers all its tools.
 
 ## Prerequisites
 
-- [Payroll Engine Backend](https://github.com/Payroll-Engine/PayrollEngine.Backend) running
+- [Payroll Engine Backend](https://github.com/Payroll-Engine/PayrollEngine.Backend) running (not needed for a [Regulator-only deployment](#regulator-profile-offline))
 - .NET 10 SDK
 - An MCP-compatible AI client
 
@@ -355,6 +357,44 @@ ApiSettings__BaseUrl=https://your-backend
 ApiSettings__Port=443
 ```
 
+### Regulator Profile (offline)
+
+The `Regulator` role registers file based tools that read the provenance manifests (`lex.json`) below configured workspace folders. The tools never write. The role is **off by default** (`None`), so existing deployments do not gain file access after an update.
+
+```json
+{
+  "McpServer": {
+    "Permissions": {
+      "HR":        "None",
+      "Payroll":   "None",
+      "Report":    "None",
+      "System":    "None",
+      "Regulator": "Read"
+    },
+    "Regulator": {
+      "Roots":    [ "C:/Workspace/Repos" ],
+      "RepoMask": "Repo.*",
+      "Backend":  "None"
+    }
+  }
+}
+```
+
+| Setting | Meaning |
+|:--------|:--------|
+| `Permissions:Regulator` | `None` (default) or `Read` |
+| `Regulator:Roots` | Existing, fully qualified folders; an array or one string separated by semicolons. Every path argument of a tool is resolved below a root. |
+| `Regulator:RepoMask` | Wildcard mask for the repository folders directly below a root (default: every folder) |
+| `Regulator:Backend` | `None` (default, offline), `Read` or `Write`: backend access of the Regulator tools |
+
+Startup rules:
+
+- `Permissions:Regulator` other than `None` requires at least one entry in `Regulator:Roots`; otherwise the server stops with a clear message.
+- The backend connection (`ApiSettings`) is required only when a backend role (`HR`, `Payroll`, `Report`, `System`) is granted or `Regulator:Backend` is not `None`. Otherwise the server runs offline — apart from source downloads and URL checks of the tools. The backend roles default to `Read`, so a Regulator-only deployment sets them to `None` explicitly.
+- A failed start writes the reason to stderr and ends the process with exit code `1`.
+
+Sample entries for Claude Desktop are in `claude_desktop_config.json` (`payroll-engine-regulator`).
+
 ## MCP Client Setup
 
 ### Claude Desktop
@@ -392,6 +432,26 @@ docker run --rm -i \
   -e ApiSettings__Port=443 \
   ghcr.io/payroll-engine/payrollengine.mcp.server
 ```
+
+For the [Regulator profile](#regulator-profile-offline) the image needs no backend. The workspace folders are mounted as a volume, and `Regulator:Roots` lists the **paths inside the container**:
+
+```bash
+docker run --rm -i \
+  -v /srv/workspace/repos:/workspace/repos:ro \
+  -e McpServer__Permissions__HR=None \
+  -e McpServer__Permissions__Payroll=None \
+  -e McpServer__Permissions__Report=None \
+  -e McpServer__Permissions__System=None \
+  -e McpServer__Permissions__Regulator=Read \
+  -e McpServer__Regulator__Roots=/workspace/repos \
+  -e "McpServer__Regulator__RepoMask=Repo.*" \
+  ghcr.io/payroll-engine/payrollengine.mcp.server
+```
+
+- The root is the container path of the mount (Linux path, forward slashes). A root that is not mounted stops the server at startup (`Regulator:Roots entry '…' does not exist`).
+- Path arguments of the tools are relative to a root, or absolute container paths below a root. Paths of the host (for example `C:\Workspace`) are not valid inside the container.
+- Mount read-only (`:ro`); the OSS tools only read. A link inside the workspace that leads outside the mounted roots is rejected.
+- Source downloads and URL checks need network access; do not start the container with `--network none` if they are used.
 
 ## Example Prompts
 

@@ -20,6 +20,11 @@
 		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="$(PayrollEngineVersion)" />
 	</ItemGroup>
 
+	<!-- startup rules of the host (HostStartup) -->
+	<ItemGroup>
+		<ProjectReference Include="..\Server\PayrollEngine.Mcp.Server.csproj" />
+	</ItemGroup>
+
 	<!-- invented satellites for the Regulator tool tests -->
 	<ItemGroup>
 		<Content Include="Resources\LexWorkspace\**\*" CopyToOutputDirectory="PreserveNewest" />
