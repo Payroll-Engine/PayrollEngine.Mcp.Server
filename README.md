@@ -406,6 +406,8 @@ Startup rules:
 - The backend connection (`ApiSettings`) is required only when a backend role (`HR`, `Payroll`, `Report`, `System`) is granted or `Regulator:Backend` is not `None`. Otherwise the server runs offline — apart from source downloads and URL checks of the tools. The backend roles default to `Read`, so a Regulator-only deployment sets them to `None` explicitly.
 - A failed start writes the reason to stderr and ends the process with exit code `1`.
 
+No PayrollConsole is required at runtime and the server starts no other program. `git` is needed only for the evidence versioning check of `lex_check` (evidence files that are untracked or ignored in a repository). Without `git`, or outside a git repository, the check is skipped and the result carries the warning `git not available: evidence versioning not checked` (or `not inside a git repository: …`); it is not a finding, and nothing stops or waits.
+
 Transport: the server speaks MCP over **stdio** on the local machine (stdin/stdout). It does not open an HTTP listener. Tools that fetch sources or check URLs (`lex_check` with `checkUrls`, `lex_verify_source` with source `live`) need outbound network access from the host process; private or internal URLs are allowed — nothing in the OSS server blocks non-public addresses for local operation.
 
 Logging: configure the log file path in `Server/appsettings.json` under `Serilog:WriteTo` (file sink only — stdout is reserved for MCP). Serilog nested sink settings cannot be overridden through environment variables; use a copied or mounted `appsettings.json` when the default path is not writable (for example in containers).
