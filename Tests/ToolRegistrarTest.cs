@@ -8,6 +8,7 @@ using PayrollEngine.Mcp.Core.Isolation;
 using PayrollEngine.Mcp.Tools;
 using PayrollEngine.Mcp.Tools.PayrollTools;
 using PayrollEngine.Mcp.Tools.PeopleTools;
+using PayrollEngine.Mcp.Tools.RegulatorTools;
 using PayrollEngine.Mcp.Tools.ReportTools;
 using PayrollEngine.Mcp.Tools.TenantTools;
 using Xunit;
@@ -429,12 +430,89 @@ public class ToolRegistrarTest
     [ToolRole(McpRole.Regulator)]
     private sealed class RegulatorProbeTool;
 
+    // real Regulator tool classes of the Mcp.Tools assembly
+    private static readonly System.Type[] RegulatorTools =
+    [
+        typeof(LexQueryTools)
+    ];
+
+    [Fact]
+    public void RegulatorTools_DefaultPermissions_AreInvisible()
+    {
+        var permitted = GetPermitted(new McpPermissions()).ToList();
+        Assert.All(RegulatorTools, t => Assert.DoesNotContain(t, permitted));
+    }
+
+    [Fact]
+    public void RegulatorTools_AllOtherRolesRead_AreInvisible()
+    {
+        // AllRead() leaves the Regulator permission at its default None
+        var permitted = GetPermitted(AllRead()).ToList();
+        Assert.All(RegulatorTools, t => Assert.DoesNotContain(t, permitted));
+    }
+
+    [Fact]
+    public void RegulatorTools_ExplicitNone_AreInvisible()
+    {
+        var permissions = new McpPermissions { Regulator = McpPermission.None };
+        Assert.All(RegulatorTools, t => Assert.DoesNotContain(t, GetPermitted(permissions).ToList()));
+    }
+
+    [Theory]
+    [InlineData(McpPermission.Read)]
+    [InlineData(McpPermission.Write)]
+    public void RegulatorTools_Granted_AreRegistered(McpPermission regulator)
+    {
+        var permissions = new McpPermissions { Regulator = regulator };
+        var permitted = GetPermitted(permissions).ToList();
+        Assert.All(RegulatorTools, t => Assert.Contains(t, permitted));
+    }
+
+    [Theory]
+    [InlineData(IsolationLevel.MultiTenant, true)]
+    [InlineData(IsolationLevel.Tenant, true)]
+    [InlineData(IsolationLevel.Division, false)]
+    [InlineData(IsolationLevel.Employee, false)]
+    public void RegulatorTools_FollowTheIsolationMatrix(IsolationLevel level, bool expected)
+    {
+        var permissions = new McpPermissions { Regulator = McpPermission.Read };
+        var permitted = GetPermitted(permissions, level).ToList();
+        Assert.All(RegulatorTools, t => Assert.Equal(expected, permitted.Contains(t)));
+    }
+
+    [Fact]
+    public void RegulatorTools_OnlyRegulatorGranted_RegistersServerInfoAndRegulatorTools()
+    {
+        var permitted = GetPermitted(new McpPermissions
+        {
+            HR = McpPermission.None,
+            Payroll = McpPermission.None,
+            Report = McpPermission.None,
+            System = McpPermission.None,
+            Regulator = McpPermission.Read
+        }).ToList();
+        Assert.Equal(1 + RegulatorTools.Length, permitted.Count);
+        Assert.Contains(typeof(ServerInfoTools), permitted);
+    }
+
+    [Fact]
+    public void RegulatorTools_NeedNoBackendClient()
+    {
+        Assert.All(RegulatorTools, t =>
+        {
+            Assert.True(t.IsSubclassOf(typeof(IsolationToolBase)), t.Name);
+            Assert.False(t.IsSubclassOf(typeof(ToolBase)), t.Name);
+            Assert.All(t.GetConstructors(), c => Assert.DoesNotContain(c.GetParameters(),
+                p => p.ParameterType.Name == "PayrollHttpClient"));
+        });
+    }
+
     #endregion
 
     #region Helpers
 
     // Default isolation level for permission-only tests: MultiTenant (all roles applicable)
-    private static System.Collections.Generic.IEnumerable<System.Type> GetPermitted(
+    private static IEnumerable<System.Type> GetPermitted(
         McpPermissions permissions,
         IsolationLevel level = IsolationLevel.MultiTenant) =>
         ToolRegistrar.GetPermittedTypes(ToolsAssembly, permissions, level);

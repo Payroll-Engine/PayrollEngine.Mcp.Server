@@ -1,0 +1,16 @@
+{
+  "authority": "XX",
+  "regulation": "XX.Data.Fees",
+  "validFrom": "2026-01-01",
+  "provider": "Example Authority",
+  "languages": [ "en" ],
+  "sources": [ { "url": "https://example.org/fees", "description": "Example fees" } ],
+  "values": [
+    {
+      "key": "Fees.A",
+      "content": "100",
+      "sourceUrls": [ "https://example.org/fees" ],
+      "legalReference": "Example Act s. 4"
+    }
+  ]
+}

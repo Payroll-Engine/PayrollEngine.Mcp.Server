@@ -1,0 +1,28 @@
+{
+  "authority": "XX",
+  "regulation": "XX.Data.Tax",
+  "validFrom": "2026-01-01",
+  "provider": "Example Authority",
+  "languages": [ "en" ],
+  "sources": [ { "url": "https://example.org/tax/rates", "description": "Example rate table" } ],
+  "values": [
+    {
+      "key": "Rates.A",
+      "content": "12.75",
+      "sourceUrls": [ "https://example.org/tax/rates" ],
+      "documentRef": "rates.html",
+      "sourceLocation": "rates.html: Section \"Rates\"",
+      "legalReference": "Example Act s. 1",
+      "verification": { "mode": "auto", "verifiedOn": "2026-01-10", "evidence": "rates.html", "method": "Example verifier 1.0" }
+    },
+    {
+      "key": "Rates.B",
+      "content": "10",
+      "sourceUrls": [ "https://example.org/tax/rates" ],
+      "documentRef": "rates.html",
+      "sourceLocation": "rates.html: Section \"Rates\"",
+      "legalReference": "Example Act s. 2"
+    }
+  ],
+  "files": [ { "fileName": "rates.html", "description": "Example rate table" } ]
+}

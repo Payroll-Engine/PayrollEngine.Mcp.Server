@@ -1,0 +1,3 @@
+{
+  "tenants": [ { "regulations": [ { "name": "XX.Data.Rates", "validFrom": "2026-01-01T00:00:00Z", "lookups": [ { "name": "Limits", "values": [ { "key": "A", "value": "11" } ] } ] } ] } ]
+}

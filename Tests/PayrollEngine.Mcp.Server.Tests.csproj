@@ -20,4 +20,9 @@
 		<PackageReference Include="PayrollEngine.Mcp.Tools" Version="$(PayrollEngineVersion)" />
 	</ItemGroup>
 
+	<!-- invented satellites for the Regulator tool tests -->
+	<ItemGroup>
+		<Content Include="Resources\LexWorkspace\**\*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
 </Project>

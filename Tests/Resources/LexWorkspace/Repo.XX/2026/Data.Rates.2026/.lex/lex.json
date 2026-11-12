@@ -1,0 +1,17 @@
+{
+  "authority": "XX",
+  "regulation": "XX.Data.Rates",
+  "validFrom": "2026-01-01",
+  "provider": "Example Authority",
+  "languages": [ "en" ],
+  "sources": [ { "url": "https://example.org/rates/limits", "description": "Example limits" } ],
+  "values": [
+    {
+      "key": "Limits.A",
+      "content": "11",
+      "sourceUrls": [ "https://example.org/rates/limits" ],
+      "sourceLocation": "Section 1",
+      "legalReference": "Example Act s. 3"
+    }
+  ]
+}
