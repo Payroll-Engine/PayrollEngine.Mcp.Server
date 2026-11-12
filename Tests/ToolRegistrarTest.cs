@@ -337,6 +337,25 @@ public class ToolRegistrarTest
 
     #endregion
 
+    #region Tool base hierarchy
+
+    [Fact]
+    public void ToolBase_DerivesFromIsolationToolBase()
+    {
+        Assert.True(typeof(ToolBase).IsSubclassOf(typeof(IsolationToolBase)));
+        Assert.True(typeof(ToolBase).IsAbstract);
+        Assert.True(typeof(IsolationToolBase).IsAbstract);
+    }
+
+    [Fact]
+    public void AllRead_AllToolClasses_DeriveFromIsolationToolBase()
+    {
+        var permitted = GetPermitted(AllRead()).ToList();
+        Assert.All(permitted, t => Assert.True(t.IsSubclassOf(typeof(IsolationToolBase)), t.Name));
+    }
+
+    #endregion
+
     #region Helpers
 
     // Default isolation level for permission-only tests: MultiTenant (all roles applicable)

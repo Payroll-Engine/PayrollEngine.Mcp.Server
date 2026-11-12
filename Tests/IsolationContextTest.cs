@@ -151,4 +151,88 @@ public class IsolationContextTest
     }
 
     #endregion
+
+    #region Workspace
+
+    [Fact]
+    public void Workspace_Default_IsEmptyAndValid()
+    {
+        var ctx = new IsolationContext { Level = IsolationLevel.MultiTenant };
+        Assert.False(ctx.Workspace.IsConfigured);
+        Assert.Equal(McpPermission.None, ctx.Workspace.Backend);
+        ctx.Validate(); // must not throw
+    }
+
+    [Fact]
+    public void Workspace_Invalid_Throws()
+    {
+        var ctx = new IsolationContext
+        {
+            Level = IsolationLevel.MultiTenant,
+            Workspace = new WorkspaceContext { Backend = McpPermission.Read }
+        };
+        Assert.Throws<InvalidOperationException>(ctx.Validate);
+    }
+
+    [Fact]
+    public void Workspace_Missing_Throws()
+    {
+        var ctx = new IsolationContext { Level = IsolationLevel.MultiTenant, Workspace = null };
+        Assert.Throws<InvalidOperationException>(ctx.Validate);
+    }
+
+    [Fact]
+    public void Workspace_MultiTenant_AnyTenants_IsValid()
+    {
+        using var fixture = new WorkspaceFixture();
+        var ctx = new IsolationContext
+        {
+            Level = IsolationLevel.MultiTenant,
+            Workspace = new WorkspaceContext
+            {
+                Roots = [fixture.Root],
+                Backend = McpPermission.Write,
+                Tenants = ["XX.Dev", "YY.Dev"]
+            }
+        };
+        ctx.Validate(); // must not throw
+    }
+
+    [Fact]
+    public void Workspace_TenantLevel_IsolatedTenant_IsValid()
+    {
+        using var fixture = new WorkspaceFixture();
+        var ctx = new IsolationContext
+        {
+            Level = IsolationLevel.Tenant,
+            TenantIdentifier = "XX.Dev",
+            Workspace = new WorkspaceContext
+            {
+                Roots = [fixture.Root],
+                Backend = McpPermission.Write,
+                Tenants = ["xx.dev"]
+            }
+        };
+        ctx.Validate(); // must not throw
+    }
+
+    [Fact]
+    public void Workspace_TenantLevel_ForeignTenant_Throws()
+    {
+        using var fixture = new WorkspaceFixture();
+        var ctx = new IsolationContext
+        {
+            Level = IsolationLevel.Tenant,
+            TenantIdentifier = "XX.Dev",
+            Workspace = new WorkspaceContext
+            {
+                Roots = [fixture.Root],
+                Backend = McpPermission.Write,
+                Tenants = ["XX.Dev", "YY.Dev"]
+            }
+        };
+        Assert.Throws<InvalidOperationException>(ctx.Validate);
+    }
+
+    #endregion
 }
