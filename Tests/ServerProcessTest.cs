@@ -13,6 +13,8 @@ namespace PayrollEngine.Mcp.Server.Tests;
 /// A Regulator-only deployment runs offline and answers get_server_info;
 /// an invalid Regulator configuration fails the start with a clear message and a non-zero exit code.
 /// No backend and no database required.</summary>
+// the server process inherits the vocabulary variable that LexCheckVocabularyTest sets
+[Collection(LexCheckVocabularyTest.Name)]
 public class ServerProcessTest(WorkspaceFixture fixture) : IClassFixture<WorkspaceFixture>
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
@@ -133,6 +135,7 @@ public class ServerProcessTest(WorkspaceFixture fixture) : IClassFixture<Workspa
         {
             var line = await process.StandardOutput.ReadLineAsync(cancellation.Token);
             Assert.NotNull(line);
+            // ReSharper disable once PossibleNullReferenceException
             if (!line.StartsWith('{'))
             {
                 continue;

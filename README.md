@@ -149,6 +149,19 @@ Tenant and user queries for cross-tenant administration and user management.
 | `get_user` | Get a user by identifier |
 | `get_user_attribute` | Get a single custom attribute of a user |
 
+### Regulator — Provenance Manifests
+
+File based, read-only tools over the `lex.json` manifests of data regulations. They need no backend connection and read files below the configured workspace roots only. Registered when `Permissions:Regulator` is `Read` (default `None`, see [Regulator Profile](#regulator-profile-offline)).
+
+| Tool | Description |
+|:-----|:------------|
+| `lex_list_manifests` | Manifests with summary: entries, open entries, verification counts, snapshot state, content hash |
+| `lex_get_entry` | One entry with sources, location, quote, verification record, exclusions and snapshot state |
+| `lex_check` | Check against the data regulation; mode `development` or `release`, optional URL check |
+| `lex_verify_snapshot` | Snapshot against manifest and evidence files |
+| `lex_verify_source` | Rate every entry against its sources, `local` evidence or `live`; nothing is written |
+| `lex_validate` | Structural validation of manifests |
+
 ## Permissions
 
 Each role is independently enabled or disabled per deployment.
