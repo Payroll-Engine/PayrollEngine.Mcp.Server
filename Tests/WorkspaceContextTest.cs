@@ -106,6 +106,10 @@ public sealed class WorkspaceContextTest : IDisposable
     [InlineData("Full")]
     [InlineData("readonly")]
     [InlineData("7")]
+    [InlineData("1")]
+    [InlineData("2")]
+    [InlineData("Read,Write")]
+    [InlineData("None,Read")]
     public void FromConfiguration_InvalidBackend_Throws(string backend)
     {
         var configuration = Configuration(new()
@@ -113,7 +117,25 @@ public sealed class WorkspaceContextTest : IDisposable
             ["McpServer:Regulator:Roots:0"] = fixture.Root,
             ["McpServer:Regulator:Backend"] = backend
         });
-        Assert.Throws<InvalidOperationException>(() => WorkspaceContext.FromConfiguration(configuration));
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => WorkspaceContext.FromConfiguration(configuration));
+        Assert.Contains("allowed: None, Read, Write", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("read", McpPermission.Read)]
+    [InlineData(" Write ", McpPermission.Write)]
+    [InlineData("", McpPermission.None)]
+    [InlineData("  ", McpPermission.None)]
+    [InlineData("None", McpPermission.None)]
+    public void FromConfiguration_Backend_IgnoresCaseAndBlanks(string backend, McpPermission expected)
+    {
+        var workspace = WorkspaceContext.FromConfiguration(Configuration(new()
+        {
+            ["McpServer:Regulator:Roots:0"] = fixture.Root,
+            ["McpServer:Regulator:Backend"] = backend
+        }));
+        Assert.Equal(expected, workspace.Backend);
     }
 
     #endregion
