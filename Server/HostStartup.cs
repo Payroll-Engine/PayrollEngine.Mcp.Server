@@ -17,10 +17,7 @@ internal static class HostStartup
     /// <param name="configuration">The application configuration</param>
     internal static IsolationContext CreateIsolationContext(IConfiguration configuration)
     {
-        var levelValue = configuration["McpServer:IsolationLevel"];
-        var level = Enum.TryParse<IsolationLevel>(levelValue, ignoreCase: true, out var parsed)
-            ? parsed
-            : IsolationLevel.MultiTenant;
+        var level = ParseIsolationLevel(configuration["McpServer:IsolationLevel"]);
 
         var isolationContext = new IsolationContext
         {
@@ -38,6 +35,31 @@ internal static class HostStartup
         isolationContext.Validate();
         ValidateRegulator(isolationContext.Permissions, isolationContext.Workspace);
         return isolationContext;
+    }
+
+    /// <summary>Reads the isolation level. A missing or empty value is MultiTenant; a value that is
+    /// not an isolation level name stops the startup instead of opening the widest level.</summary>
+    /// <param name="value">The configured value of McpServer:IsolationLevel</param>
+    /// <exception cref="InvalidOperationException">The value is not an isolation level name</exception>
+    internal static IsolationLevel ParseIsolationLevel(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return IsolationLevel.MultiTenant;
+        }
+
+        // compare against the names: Enum.TryParse also accepts numbers and comma lists
+        foreach (var name in Enum.GetNames<IsolationLevel>())
+        {
+            if (string.Equals(name, value.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return Enum.Parse<IsolationLevel>(name);
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"McpServer:IsolationLevel has the invalid value '{value}'. " +
+            $"Allowed values: {string.Join(", ", Enum.GetNames<IsolationLevel>())}.");
     }
 
     /// <summary>True when a backend connection is required: a backend role (HR, Payroll, Report, System)
