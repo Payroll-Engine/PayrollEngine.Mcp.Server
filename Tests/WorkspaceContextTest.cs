@@ -26,9 +26,7 @@ public sealed class WorkspaceContextTest : IDisposable
 
         Assert.False(workspace.IsConfigured);
         Assert.Empty(workspace.Roots);
-        Assert.Empty(workspace.Tenants);
         Assert.Null(workspace.RepoMask);
-        Assert.Null(workspace.Identity);
         Assert.Empty(workspace.AgentIdentities);
         Assert.Equal(McpPermission.None, workspace.Backend);
         workspace.Validate(); // must not throw
@@ -76,16 +74,29 @@ public sealed class WorkspaceContextTest : IDisposable
             ["McpServer:Regulator:Roots:0"] = fixture.Root,
             ["McpServer:Regulator:Roots:1"] = fixture.Root2,
             ["McpServer:Regulator:RepoMask"] = "Repo.*",
-            ["McpServer:Regulator:Identity"] = " Jane Doe ",
-            ["McpServer:Regulator:Backend"] = "write",
-            ["McpServer:Regulator:Tenants:0"] = "XX.Dev"
+            ["McpServer:Regulator:AgentIdentities:0"] = "Agent One",
+            ["McpServer:Regulator:Backend"] = "read"
         }));
 
         Assert.Equal([fixture.Root, fixture.Root2], workspace.Roots);
         Assert.Equal("Repo.*", workspace.RepoMask);
-        Assert.Equal("Jane Doe", workspace.Identity);
-        Assert.Equal(McpPermission.Write, workspace.Backend);
-        Assert.Equal(["XX.Dev"], workspace.Tenants);
+        Assert.Equal(["Agent One"], workspace.AgentIdentities);
+        Assert.Equal(McpPermission.Read, workspace.Backend);
+        workspace.Validate(); // must not throw
+    }
+
+    [Fact]
+    public void FromConfiguration_RemovedSettings_AreIgnored()
+    {
+        // Identity and Tenants are not settings of the workspace: a configuration that still has them starts as before
+        var workspace = WorkspaceContext.FromConfiguration(Configuration(new()
+        {
+            ["McpServer:Regulator:Roots:0"] = fixture.Root,
+            ["McpServer:Regulator:Identity"] = "Jane Doe",
+            ["McpServer:Regulator:Tenants:0"] = "XX.Dev"
+        }));
+
+        Assert.Equal([fixture.Root], workspace.Roots);
         workspace.Validate(); // must not throw
     }
 
@@ -95,11 +106,11 @@ public sealed class WorkspaceContextTest : IDisposable
         var workspace = WorkspaceContext.FromConfiguration(Configuration(new()
         {
             ["McpServer:Regulator:Roots"] = $"{fixture.Root}; {fixture.Root2};",
-            ["McpServer:Regulator:Tenants"] = "XX.Dev;YY.Dev"
+            ["McpServer:Regulator:AgentIdentities"] = "Agent One;Agent Two"
         }));
 
         Assert.Equal([fixture.Root, fixture.Root2], workspace.Roots);
-        Assert.Equal(["XX.Dev", "YY.Dev"], workspace.Tenants);
+        Assert.Equal(["Agent One", "Agent Two"], workspace.AgentIdentities);
     }
 
     [Theory]
@@ -110,6 +121,8 @@ public sealed class WorkspaceContextTest : IDisposable
     [InlineData("2")]
     [InlineData("Read,Write")]
     [InlineData("None,Read")]
+    [InlineData("Write")]
+    [InlineData(" write ")]
     public void FromConfiguration_InvalidBackend_Throws(string backend)
     {
         var configuration = Configuration(new()
@@ -119,12 +132,21 @@ public sealed class WorkspaceContextTest : IDisposable
         });
         var exception = Assert.Throws<InvalidOperationException>(
             () => WorkspaceContext.FromConfiguration(configuration));
-        Assert.Contains("allowed: None, Read, Write", exception.Message);
+        Assert.Contains("allowed: None, Read)", exception.Message);
+    }
+
+    [Fact]
+    public void Validate_BackendWrite_Throws()
+    {
+        var workspace = new WorkspaceContext { Roots = [fixture.Root], Backend = McpPermission.Write };
+
+        var exception = Assert.Throws<InvalidOperationException>(workspace.Validate);
+        Assert.Contains("allowed: None, Read)", exception.Message);
     }
 
     [Theory]
     [InlineData("read", McpPermission.Read)]
-    [InlineData(" Write ", McpPermission.Write)]
+    [InlineData(" Read ", McpPermission.Read)]
     [InlineData("", McpPermission.None)]
     [InlineData("  ", McpPermission.None)]
     [InlineData("None", McpPermission.None)]
@@ -146,9 +168,7 @@ public sealed class WorkspaceContextTest : IDisposable
     public void Validate_SettingsWithoutRoots_Throws()
     {
         Assert.Throws<InvalidOperationException>(new WorkspaceContext { RepoMask = "Repo.*" }.Validate);
-        Assert.Throws<InvalidOperationException>(new WorkspaceContext { Identity = "Jane Doe" }.Validate);
         Assert.Throws<InvalidOperationException>(new WorkspaceContext { Backend = McpPermission.Read }.Validate);
-        Assert.Throws<InvalidOperationException>(new WorkspaceContext { Tenants = ["XX.Dev"] }.Validate);
     }
 
     [Fact]
@@ -219,7 +239,7 @@ public sealed class WorkspaceContextTest : IDisposable
 
     #endregion
 
-    #region Repository mask and tenants
+    #region Repository mask
 
     [Theory]
     [InlineData("Repo.XX", true)]
@@ -232,26 +252,6 @@ public sealed class WorkspaceContextTest : IDisposable
     {
         var workspace = new WorkspaceContext { Roots = [fixture.Root], RepoMask = "Repo.*" };
         Assert.Equal(expected, workspace.IsRepositoryName(name));
-    }
-
-    [Theory]
-    [InlineData(McpPermission.Write, "XX.Dev", true)]
-    [InlineData(McpPermission.Write, "xx.dev", true)]
-    [InlineData(McpPermission.Write, "YY.Dev", false)]
-    [InlineData(McpPermission.Write, null, false)]
-    [InlineData(McpPermission.Read, "XX.Dev", false)]
-    [InlineData(McpPermission.None, "XX.Dev", false)]
-    public void IsTenantAllowed_RequiresWriteAndAllowlist(McpPermission backend, string tenant, bool expected)
-    {
-        var workspace = new WorkspaceContext { Roots = [fixture.Root], Backend = backend, Tenants = ["XX.Dev"] };
-        Assert.Equal(expected, workspace.IsTenantAllowed(tenant));
-    }
-
-    [Fact]
-    public void IsTenantAllowed_EmptyAllowlist_DeniesAll()
-    {
-        var workspace = new WorkspaceContext { Roots = [fixture.Root], Backend = McpPermission.Write };
-        Assert.False(workspace.IsTenantAllowed("XX.Dev"));
     }
 
     #endregion

@@ -181,55 +181,29 @@ public class IsolationContextTest
         Assert.Throws<InvalidOperationException>(ctx.Validate);
     }
 
+    [Theory]
+    [InlineData(IsolationLevel.MultiTenant)]
+    [InlineData(IsolationLevel.Tenant)]
+    public void Workspace_BackendRead_IsValid(IsolationLevel level)
+    {
+        using var fixture = new WorkspaceFixture();
+        var ctx = new IsolationContext
+        {
+            Level = level,
+            TenantIdentifier = level == IsolationLevel.Tenant ? "XX.Dev" : null,
+            Workspace = new WorkspaceContext { Roots = [fixture.Root], Backend = McpPermission.Read }
+        };
+        ctx.Validate(); // must not throw
+    }
+
     [Fact]
-    public void Workspace_MultiTenant_AnyTenants_IsValid()
+    public void Workspace_BackendWrite_Throws()
     {
         using var fixture = new WorkspaceFixture();
         var ctx = new IsolationContext
         {
             Level = IsolationLevel.MultiTenant,
-            Workspace = new WorkspaceContext
-            {
-                Roots = [fixture.Root],
-                Backend = McpPermission.Write,
-                Tenants = ["XX.Dev", "YY.Dev"]
-            }
-        };
-        ctx.Validate(); // must not throw
-    }
-
-    [Fact]
-    public void Workspace_TenantLevel_IsolatedTenant_IsValid()
-    {
-        using var fixture = new WorkspaceFixture();
-        var ctx = new IsolationContext
-        {
-            Level = IsolationLevel.Tenant,
-            TenantIdentifier = "XX.Dev",
-            Workspace = new WorkspaceContext
-            {
-                Roots = [fixture.Root],
-                Backend = McpPermission.Write,
-                Tenants = ["xx.dev"]
-            }
-        };
-        ctx.Validate(); // must not throw
-    }
-
-    [Fact]
-    public void Workspace_TenantLevel_ForeignTenant_Throws()
-    {
-        using var fixture = new WorkspaceFixture();
-        var ctx = new IsolationContext
-        {
-            Level = IsolationLevel.Tenant,
-            TenantIdentifier = "XX.Dev",
-            Workspace = new WorkspaceContext
-            {
-                Roots = [fixture.Root],
-                Backend = McpPermission.Write,
-                Tenants = ["XX.Dev", "YY.Dev"]
-            }
+            Workspace = new WorkspaceContext { Roots = [fixture.Root], Backend = McpPermission.Write }
         };
         Assert.Throws<InvalidOperationException>(ctx.Validate);
     }

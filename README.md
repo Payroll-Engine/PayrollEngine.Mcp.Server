@@ -398,7 +398,7 @@ The `Regulator` role registers file based tools that read the provenance manifes
 | `Permissions:Regulator` | `None` (default) or `Read` |
 | `Regulator:Roots` | Existing, fully qualified folders; an array or one string separated by semicolons. Every path argument of a tool is resolved below a root. |
 | `Regulator:RepoMask` | Wildcard mask for the repository folders directly below a root (default: every folder) |
-| `Regulator:Backend` | `None` (default, offline), `Read` or `Write`: backend access of the Regulator tools |
+| `Regulator:Backend` | `None` (default, offline) or `Read`: backend access of the Regulator tools. Any other value, including `Write`, stops the start |
 
 Startup rules:
 
