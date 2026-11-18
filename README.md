@@ -51,7 +51,7 @@ The server tool is registered unconditionally — regardless of role permissions
 
 | Tool | Description |
 |:-----|:------------|
-| `get_server_info` | Returns server version, Lex library version, active isolation level, configured scope, role permissions, the regulator mode (permission, number of workspace roots, repository mask, backend access) and the backend mode (`connected` or `offline`). Use to verify which build is running and how it is configured. Works without a backend connection. |
+| `get_server_info` | Returns server version, Lex library version, active isolation level, configured scope, role permissions (including the roles defined by the server, `customRoles`), the regulator mode (permission, number of workspace roots, repository mask, backend access) and the backend mode (`connected` or `offline`). Use to verify which build is running and how it is configured. Works without a backend connection. |
 
 ### HR — Human Resources
 
